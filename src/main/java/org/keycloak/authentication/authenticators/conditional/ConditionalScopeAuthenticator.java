@@ -28,8 +28,8 @@ public class ConditionalScopeAuthenticator implements ConditionalAuthenticator {
     @Override
     public boolean matchCondition(AuthenticationFlowContext context) {
         Map<String, String> config = context.getAuthenticatorConfig().getConfig();
-        boolean negateOutput = Boolean.parseBoolean(config.get(ConditionalUserAttributeValueFactory.CONF_NOT));
-        boolean regexOutput = Boolean.parseBoolean(config.get(ConditionalUserAttributeValueFactory.REGEX));
+        boolean negateOutput = Boolean.parseBoolean(config.get(ConditionalScopeAuthenticatorFactory.NEGATE));
+        boolean regexOutput = Boolean.parseBoolean(config.get(ConditionalScopeAuthenticatorFactory.REGEX));
         String scopeName = config.get(ConditionalScopeAuthenticatorFactory.SCOPE);
 
         List<AuthorizationDetails> scopes = getClientScopeModelStream(context).collect(Collectors.toList());
