@@ -46,8 +46,9 @@ public class ConditionalScopeAuthenticator implements ConditionalAuthenticator {
         }
 
         for (AuthorizationDetails scope : scopes) {
-            if (scope.isDynamicScope()) {
-                if (Objects.equals(scope.getClientScope().getName() + ":" + scope.getDynamicScopeParam(), scopeName)) {
+            final String scopeParam = scope.getParameterizedScopeParam();
+            if (scopeParam != null) {
+                if (Objects.equals(scope.getClientScope().getName() + ":" + scopeParam, scopeName)) {
                     return true;
                 }
             } else if (Objects.equals(scope.getClientScope().getName(), scopeName)) {
@@ -66,8 +67,10 @@ public class ConditionalScopeAuthenticator implements ConditionalAuthenticator {
         Pattern pattern = Pattern.compile(scopeName, Pattern.DOTALL);
 
         for (AuthorizationDetails scope : scopes) {
-            if (scope.isDynamicScope()) {
-                if (pattern.matcher(scope.getClientScope().getName() + ":" + scope.getDynamicScopeParam()).matches()) {
+            final String scopeParam = scope.getParameterizedScopeParam();
+            if (scopeParam != null) {
+                if (pattern.matcher(scope.getClientScope().getName() + ":" + scopeParam)
+                        .matches()) {
                     return true;
                 }
             } else if (pattern.matcher(scope.getClientScope().getName()).matches()) {
@@ -81,15 +84,15 @@ public class ConditionalScopeAuthenticator implements ConditionalAuthenticator {
     private static Stream<AuthorizationDetails> getClientScopeModelStream(AuthenticationFlowContext context) {
         AuthenticationSessionModel authSession = context.getAuthenticationSession();
 
-        // if Dynamic Scopes are enabled, get the scopes from the
+        // if Parameterized Scopes are enabled, get the scopes from the
         // AuthorizationRequestContext, passing the session and scopes as parameters
         // then concat a Stream with the ClientModel, as it's discarded in the
         // getAuthorizationRequestContext method
-        if (Profile.isFeatureEnabled(Profile.Feature.DYNAMIC_SCOPES)) {
+        if (Profile.isFeatureEnabled(Profile.Feature.PARAMETERIZED_SCOPES)) {
             return AuthorizationContextUtil.getAuthorizationRequestsStreamFromScopesWithClient(context.getSession(),
-                    authSession.getClientNote(OAuth2Constants.SCOPE));
+                    authSession.getClient(), authSession.getClientNote(OAuth2Constants.SCOPE));
         }
-        // if dynamic scopes are not enabled, we retain the old behaviour, but the
+        // if Parameterized Scopes are not enabled, we retain the old behaviour, but the
         // ClientScopes will be wrapped in
         // AuthorizationRequest objects to standardize the code handling these.
         return authSession.getClientScopes().stream()
